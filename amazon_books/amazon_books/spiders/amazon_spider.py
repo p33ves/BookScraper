@@ -1,4 +1,5 @@
 import scrapy
+from ..items import AmazonBooksItem
 
 
 class AmazonSpider(scrapy.Spider):
@@ -17,13 +18,14 @@ class AmazonSpider(scrapy.Spider):
             "span.a-price-whole::text").extract()
         all_prices = response.css("span.a-offscreen::text").extract()
         """
+        item = AmazonBooksItem()
         all_books = response.css("li.a-carousel-card")
         for book in all_books:
             book_title = book.css(
                 ".acs-product-block__product-title").css("span.a-truncate-full::text").extract()
             book_author = book.css(
                 "span.acs-product-block__contributor").css("span.a-truncate-full::text").extract()
-            book_type = book.css(
+            book_binding = book.css(
                 "span.acs-product-block__binding-value::text").extract()
             price = book.css("div.acs-product-block__price")
             current_price = price.css(
@@ -34,12 +36,12 @@ class AmazonSpider(scrapy.Spider):
             book_stars = book_rating.css("i").extract()
             book_review_count = book_rating.css(
                 "span.acs-product-block__rating__review-count::text").extract()
-            yield {
-                'title': book_title,
-                'author': book_author,
-                'type': book_type,
-                'current_price': current_price,
-                'listed_price': listed_price,
-                'rating': book_stars,
-                'review_count': book_review_count
-            }
+
+            item['title'] = book_title
+            item['author'] = book_author
+            item['binding'] = book_binding
+            item['current_price'] = current_price
+            item['listed_price'] = listed_price
+            item['rating'] = book_stars
+            item['review_count'] = book_review_count
+            yield item
